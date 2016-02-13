@@ -56,21 +56,18 @@ func main() {
 	}
 	defer sftp.Close()
 
-	// Record original file size.
 	finStat, err := os.Stat(inPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	origSize := finStat.Size()
 
-	// Open input file.
 	fin, err := os.Open(inPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer fin.Close()
 
-	// Create output file & copy data.
 	outPath := path.Clean(path.Join(pars.DstFolder, filepath.Base(inPath)))
 	fout, err := sftp.Create(outPath)
 	if err != nil {
@@ -80,7 +77,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Verify output file size and remove target file & error out on mismatch.
 	foutStat, err := sftp.Lstat(outPath)
 	if err != nil {
 		log.Fatal(err)
