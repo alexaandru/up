@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -14,16 +12,6 @@ import (
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
-
-const flagHelp = `  <filename> required
-	The filename to be uploaded. There is no default value.`
-
-type sshParams struct {
-	Addr,
-	User,
-	Password,
-	DstFolder string
-}
 
 var pars = &sshParams{
 	Addr:      "172.17.0.2:22",
@@ -34,57 +22,34 @@ var pars = &sshParams{
 
 var inPath string
 
-func loadConfigFromFile() error {
-	buf, err := ioutil.ReadFile("up.json")
-	if err != nil {
-		return nil // it is NOT an error if the file does not exist, we still have the defaults and cmdline
-	}
-
-	return json.Unmarshal(buf, pars)
-}
-
-func finalizeParamsParsing(rest []string) error {
-	if x := len(rest); x != 1 {
-		return fmt.Errorf("Expeced exactly one filename to be passed, got %d", x)
-	}
-
-	inPath = rest[0]
-	return nil
-}
-
-func init() {
-	flag.StringVar(&pars.Addr, "addr", pars.Addr, "Address to connect to")
-	flag.StringVar(&pars.User, "user", pars.User, "Username to connect as")
-	flag.StringVar(&pars.Password, "pass", pars.Password, "Password to connect with")
-	flag.StringVar(&pars.DstFolder, "dst", pars.DstFolder, "Destination folder")
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		flag.PrintDefaults()
-		fmt.Println(flagHelp)
-	}
-}
-
-func main() {
-	// Gather settings, in order: defaults, config file, commandline.
-	if err := loadConfigFromFile(); err != nil {
-		log.Fatal(err)
+func resolveSettings(pars *sshParams) error {
+	if err := loadConfigFromFile(pars); err != nil {
+		return err
 	}
 	flag.Parse()
-	if err := finalizeParamsParsing(flag.Args()); err != nil {
-		log.Fatal(err)
-	}
 
-	// Initialize SSH connection.
+	return finalizeParamsParsing(flag.Args())
+}
+
+func initSSH(pars *sshParams) (*ssh.Client, error) {
 	config := &ssh.ClientConfig{
 		User: pars.User,
 		Auth: []ssh.AuthMethod{ssh.Password(pars.Password)},
 	}
-	conn, err := ssh.Dial("tcp", pars.Addr, config)
+
+	return ssh.Dial("tcp", pars.Addr, config)
+}
+
+func main() {
+	if err := resolveSettings(pars); err != nil {
+		log.Fatal(err)
+	}
+
+	conn, err := initSSH(pars)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Initialize SFTP client.
 	sftp, err := sftp.NewClient(conn)
 	if err != nil {
 		log.Fatal(err)
