@@ -62,6 +62,13 @@ go build
 ./up some_file.txt # should work out of the box. The defaults in .go and Dockerfile match.
 ```
 
+## Limitations
+
+This is strictly an "one file at a time" uploader. It has no other functionality (upload recursively,
+download, etc.) and there are no plans to add it.
+
+Currently, it can only use password for authentication, but this may change in the future.
+
 ## License
 
 See ./LICENSE for details.
