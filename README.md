@@ -1,4 +1,4 @@
-# Up
+# Up [![Build Status](https://travis-ci.org/alexaandru/up.svg?branch=master)](https://travis-ci.org/alexaandru/up) [![GoReport](https://goreportcard.com/badge/alexaandru/up)](https://goreportcard.com/report/alexaandru/up) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A tiny sftp UPloading client, so tiny - it doesn't even need a longer name :)
 
